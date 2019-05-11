@@ -1,0 +1,246 @@
+<Activity mc:Ignorable="sap sap2010" x:Class="Main" mva:VisualBasic.Settings="{x:Null}" sap:VirtualizedContainerService.HintSize="751,3713" sap2010:WorkflowViewState.IdRef="ActivityBuilder_1" xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:mva="clr-namespace:Microsoft.VisualBasic.Activities;assembly=System.Activities" xmlns:o="clr-namespace:OrchestratorAPILibrary;assembly=OrchestratorAPILibrary" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:sap="http://schemas.microsoft.com/netfx/2009/xaml/activities/presentation" xmlns:sap2010="http://schemas.microsoft.com/netfx/2010/xaml/activities/presentation" xmlns:scg="clr-namespace:System.Collections.Generic;assembly=mscorlib" xmlns:sco="clr-namespace:System.Collections.ObjectModel;assembly=mscorlib" xmlns:ui="http://schemas.uipath.com/workflow/activities" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <TextExpression.NamespacesForImplementation>
+    <sco:Collection x:TypeArguments="x:String">
+      <x:String>System.Activities</x:String>
+      <x:String>System.Activities.Statements</x:String>
+      <x:String>System.Activities.Expressions</x:String>
+      <x:String>System.Activities.Validation</x:String>
+      <x:String>System.Activities.XamlIntegration</x:String>
+      <x:String>Microsoft.VisualBasic</x:String>
+      <x:String>Microsoft.VisualBasic.Activities</x:String>
+      <x:String>System</x:String>
+      <x:String>System.Collections</x:String>
+      <x:String>System.Collections.Generic</x:String>
+      <x:String>System.Data</x:String>
+      <x:String>System.Diagnostics</x:String>
+      <x:String>System.Drawing</x:String>
+      <x:String>System.IO</x:String>
+      <x:String>System.Linq</x:String>
+      <x:String>System.Net.Mail</x:String>
+      <x:String>System.Xml</x:String>
+      <x:String>System.Xml.Linq</x:String>
+      <x:String>UiPath.Core</x:String>
+      <x:String>UiPath.Core.Activities</x:String>
+      <x:String>System.Windows.Markup</x:String>
+    </sco:Collection>
+  </TextExpression.NamespacesForImplementation>
+  <TextExpression.ReferencesForImplementation>
+    <sco:Collection x:TypeArguments="AssemblyReference">
+      <AssemblyReference>System.Activities</AssemblyReference>
+      <AssemblyReference>Microsoft.VisualBasic</AssemblyReference>
+      <AssemblyReference>mscorlib</AssemblyReference>
+      <AssemblyReference>System.Data</AssemblyReference>
+      <AssemblyReference>System</AssemblyReference>
+      <AssemblyReference>System.Drawing</AssemblyReference>
+      <AssemblyReference>System.Core</AssemblyReference>
+      <AssemblyReference>System.Xml</AssemblyReference>
+      <AssemblyReference>System.Xml.Linq</AssemblyReference>
+      <AssemblyReference>PresentationFramework</AssemblyReference>
+      <AssemblyReference>WindowsBase</AssemblyReference>
+      <AssemblyReference>PresentationCore</AssemblyReference>
+      <AssemblyReference>System.Xaml</AssemblyReference>
+      <AssemblyReference>UiPath.System.Activities</AssemblyReference>
+      <AssemblyReference>UiPath.UiAutomation.Activities</AssemblyReference>
+      <AssemblyReference>System.ServiceModel</AssemblyReference>
+      <AssemblyReference>UiPath.Excel</AssemblyReference>
+      <AssemblyReference>UiPath.Mail</AssemblyReference>
+    </sco:Collection>
+  </TextExpression.ReferencesForImplementation>
+  <Sequence sap2010:Annotation.AnnotationText="사전 준비사항&#xD;&#xA;1. 분산처리를 위한 Environment 생성 ( Control, Distribute 총 2개 )&#xD;&#xA;2. JobDIspatcher를 만들고 Control Environment에 등록, 작업에 필요한 데이터를 DataQueue에 넣어 주는 일을 함 &#xD;&#xA;3. 실제 업무를 처리하는 Work Process를 Distribute에 등록 ( InputArguments로  in_DataQueue, in_ResultQueue를 받아서 처리하도록 설계) &#xD;&#xA;DataQueue에서 필요한 데이터를 가져와서 처리후 결과를 ResultQueue에 등록함 (필요시) &#xD;&#xA;4. Merge가 필요한 경우 Merge Process를 Control에 등록, InputArguments로 in_ResultQueue를 받아서 처리하도록 설계, Work Process에서 만든 결과물은 전부 ResultQueue에 들어가 있으며, 이 결과물을 꺼내서 작업 함 &#xD;&#xA;" DisplayName="Sequence - 분산작업을 위한 예제 " sap:VirtualizedContainerService.HintSize="711,3593" sap2010:WorkflowViewState.IdRef="Sequence_1">
+    <Sequence.Variables>
+      <Variable x:TypeArguments="x:String" Default="[System.Guid.NewGuid().ToString]" Name="DataQueueName" />
+      <Variable x:TypeArguments="x:String" Default="[System.Guid.NewGuid().ToString]" Name="ResultQueueName" />
+      <Variable x:TypeArguments="x:Int32" Name="StatusCode" />
+      <Variable x:TypeArguments="x:String" Name="Resp" />
+      <Variable x:TypeArguments="s:String[]" Name="JobIds" />
+      <Variable x:TypeArguments="x:Boolean" Name="AllDone" />
+      <Variable x:TypeArguments="s:String[]" Default="[{ &quot;Faulted&quot;, &quot;Successful&quot;, &quot;Stopped&quot;}]" Name="Finished" />
+    </Sequence.Variables>
+    <sap:WorkflowViewStateService.ViewState>
+      <scg:Dictionary x:TypeArguments="x:String, x:Object">
+        <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+        <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+      </scg:Dictionary>
+    </sap:WorkflowViewStateService.ViewState>
+    <Assign sap:VirtualizedContainerService.HintSize="689,60" sap2010:WorkflowViewState.IdRef="Assign_1">
+      <Assign.To>
+        <OutArgument x:TypeArguments="x:String">[DataQueueName]</OutArgument>
+      </Assign.To>
+      <Assign.Value>
+        <InArgument x:TypeArguments="x:String">[String.Format("Data-{0}", System.Guid.NewGuid.ToString)]</InArgument>
+      </Assign.Value>
+    </Assign>
+    <o:CreateQueue sap2010:Annotation.AnnotationText="여러개의 로봇이 같은 프로세스를 수행시 사용할 데이터 큐를 생성한다. " sap:VirtualizedContainerService.HintSize="689,79" sap2010:WorkflowViewState.IdRef="CreateQueue_1" in_QueueName="[DataQueueName]" in_RetryCount="1" out_StatusCode="[StatusCode]">
+      <sap:WorkflowViewStateService.ViewState>
+        <scg:Dictionary x:TypeArguments="x:String, x:Object">
+          <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+        </scg:Dictionary>
+      </sap:WorkflowViewStateService.ViewState>
+    </o:CreateQueue>
+    <ui:LogMessage DisplayName="Log Message" sap:VirtualizedContainerService.HintSize="689,91" sap2010:WorkflowViewState.IdRef="LogMessage_3" Level="Info" Message="[String.Format(&quot;데이터 큐 생성 결과 : {0}&quot;, StatusCode)]" />
+    <Assign sap:VirtualizedContainerService.HintSize="689,60" sap2010:WorkflowViewState.IdRef="Assign_2">
+      <Assign.To>
+        <OutArgument x:TypeArguments="x:String">[ResultQueueName]</OutArgument>
+      </Assign.To>
+      <Assign.Value>
+        <InArgument x:TypeArguments="x:String">[String.Format("Result-{0}", System.Guid.NewGuid.ToString)]</InArgument>
+      </Assign.Value>
+    </Assign>
+    <o:CreateQueue out_StatusCode="{x:Null}" sap2010:Annotation.AnnotationText="각 로봇에서 생성할 겨로가를 최총적으로 머지해야 할 경우 별도의 결과 큐를 사용한다. " sap:VirtualizedContainerService.HintSize="689,79" sap2010:WorkflowViewState.IdRef="CreateQueue_2" in_QueueName="[ResultQueueName]" in_RetryCount="0">
+      <sap:WorkflowViewStateService.ViewState>
+        <scg:Dictionary x:TypeArguments="x:String, x:Object">
+          <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+        </scg:Dictionary>
+      </sap:WorkflowViewStateService.ViewState>
+    </o:CreateQueue>
+    <ui:LogMessage DisplayName="Log Message" sap:VirtualizedContainerService.HintSize="689,91" sap2010:WorkflowViewState.IdRef="LogMessage_4" Level="Info" Message="[String.Format(&quot;결과  큐 생성 결과 : {0}&quot;, StatusCode)]" />
+    <Sequence sap2010:Annotation.AnnotationText="DataQueue에 작업에 필요한 데이터를 입력해준다. 데이터 입력이 완료된 이후에 StartJob을 호출한다. " sap:VirtualizedContainerService.HintSize="689,171" sap2010:WorkflowViewState.IdRef="Sequence_4">
+      <sap:WorkflowViewStateService.ViewState>
+        <scg:Dictionary x:TypeArguments="x:String, x:Object">
+          <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+        </scg:Dictionary>
+      </sap:WorkflowViewStateService.ViewState>
+    </Sequence>
+    <o:StartJob sap2010:Annotation.AnnotationText="여러개 로봇이 동시에 수행하게 될 프로세스를 실행시킨다. &#xD;&#xA;실행해야할 Robot의 개수를 정해줄 수 있다. &#xD;&#xA;&#xD;&#xA;in_DataQueue 와 in_ResultQueue를 입력 매개변수로 넣어준다. " DisplayName="StartJob - Work Process" sap:VirtualizedContainerService.HintSize="689,169" sap2010:WorkflowViewState.IdRef="StartJob_1" in_InputArgs="[&quot;{ &quot;&quot;in_DataQueue&quot;&quot;: &quot;&quot;&quot; + DataQueueName +&quot;&quot;&quot;, &quot;&quot;in_ResultQueue&quot;&quot;: &quot;&quot;&quot; + ResultQueueName + &quot;&quot;&quot; }&quot;]" in_Name="HelloRPA_Distribute" in_NoRobots="1" out_JobIds="[JobIds]" out_Response="[Resp]" out_StatusCode="[StatusCode]">
+      <sap:WorkflowViewStateService.ViewState>
+        <scg:Dictionary x:TypeArguments="x:String, x:Object">
+          <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+        </scg:Dictionary>
+      </sap:WorkflowViewStateService.ViewState>
+    </o:StartJob>
+    <Assign sap:VirtualizedContainerService.HintSize="689,60" sap2010:WorkflowViewState.IdRef="Assign_3">
+      <Assign.To>
+        <OutArgument x:TypeArguments="x:Boolean">[AllDone]</OutArgument>
+      </Assign.To>
+      <Assign.Value>
+        <InArgument x:TypeArguments="x:Boolean">False</InArgument>
+      </Assign.Value>
+    </Assign>
+    <DoWhile DisplayName="Do While - 모든 Job이 종료할때 까지 대기 " sap:VirtualizedContainerService.HintSize="689,1968" sap2010:WorkflowViewState.IdRef="DoWhile_1">
+      <sap:WorkflowViewStateService.ViewState>
+        <scg:Dictionary x:TypeArguments="x:String, x:Object">
+          <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          <x:Boolean x:Key="IsPinned">False</x:Boolean>
+        </scg:Dictionary>
+      </sap:WorkflowViewStateService.ViewState>
+      <DoWhile.Condition>[Not AllDone]</DoWhile.Condition>
+      <Sequence sap:VirtualizedContainerService.HintSize="663,1806" sap2010:WorkflowViewState.IdRef="Sequence_8">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+        <ui:ForEach x:TypeArguments="x:String" CurrentIndex="{x:Null}" DisplayName="For Each - 실행된 Job 개수만큼 수행 " sap:VirtualizedContainerService.HintSize="641,1434" sap2010:WorkflowViewState.IdRef="ForEach`1_4" Values="[JobIds]">
+          <ui:ForEach.Body>
+            <ActivityAction x:TypeArguments="x:String">
+              <ActivityAction.Argument>
+                <DelegateInArgument x:TypeArguments="x:String" Name="item" />
+              </ActivityAction.Argument>
+              <Sequence DisplayName="Body" sap:VirtualizedContainerService.HintSize="625,1300" sap2010:WorkflowViewState.IdRef="Sequence_7">
+                <Sequence.Variables>
+                  <Variable x:TypeArguments="scg:IEnumerable(ui:OrchestratorJob)" Name="Jobs" />
+                  <Variable x:TypeArguments="x:String" Name="_JobState" />
+                </Sequence.Variables>
+                <sap:WorkflowViewStateService.ViewState>
+                  <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                    <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                  </scg:Dictionary>
+                </sap:WorkflowViewStateService.ViewState>
+                <Assign sap:VirtualizedContainerService.HintSize="603,60" sap2010:WorkflowViewState.IdRef="Assign_4">
+                  <Assign.To>
+                    <OutArgument x:TypeArguments="x:String">[_JobState]</OutArgument>
+                  </Assign.To>
+                  <Assign.Value>
+                    <InArgument x:TypeArguments="x:String">[Nothing]</InArgument>
+                  </Assign.Value>
+                </Assign>
+                <ui:GetJobs Skip="{x:Null}" TimeoutMS="{x:Null}" Top="{x:Null}" DisplayName="Get Jobs" Filter="[String.Format(&quot;Id eq {0}&quot;, item)]" sap:VirtualizedContainerService.HintSize="603,22" sap2010:WorkflowViewState.IdRef="GetJobs_2" Result="[Jobs]" />
+                <ui:ForEach x:TypeArguments="ui:OrchestratorJob" CurrentIndex="{x:Null}" DisplayName="For Each" sap:VirtualizedContainerService.HintSize="603,449" sap2010:WorkflowViewState.IdRef="ForEach`1_3" Values="[Jobs]">
+                  <ui:ForEach.Body>
+                    <ActivityAction x:TypeArguments="ui:OrchestratorJob">
+                      <ActivityAction.Argument>
+                        <DelegateInArgument x:TypeArguments="ui:OrchestratorJob" Name="job" />
+                      </ActivityAction.Argument>
+                      <Sequence DisplayName="Body" sap:VirtualizedContainerService.HintSize="336,315" sap2010:WorkflowViewState.IdRef="Sequence_5">
+                        <sap:WorkflowViewStateService.ViewState>
+                          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                          </scg:Dictionary>
+                        </sap:WorkflowViewStateService.ViewState>
+                        <Assign sap:VirtualizedContainerService.HintSize="314,60" sap2010:WorkflowViewState.IdRef="Assign_5">
+                          <Assign.To>
+                            <OutArgument x:TypeArguments="x:String">[_JobState]</OutArgument>
+                          </Assign.To>
+                          <Assign.Value>
+                            <InArgument x:TypeArguments="x:String">[job.State.ToString]</InArgument>
+                          </Assign.Value>
+                        </Assign>
+                        <ui:LogMessage DisplayName="Log Message" sap:VirtualizedContainerService.HintSize="314,91" sap2010:WorkflowViewState.IdRef="LogMessage_5" Level="Info" Message="[String.Format(&quot;Job {0} Name {1} state {2}&quot;, item, job.ProcessName, job.State)]" />
+                      </Sequence>
+                    </ActivityAction>
+                  </ui:ForEach.Body>
+                  <sap:WorkflowViewStateService.ViewState>
+                    <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                      <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                      <x:Boolean x:Key="IsPinned">False</x:Boolean>
+                    </scg:Dictionary>
+                  </sap:WorkflowViewStateService.ViewState>
+                </ui:ForEach>
+                <If Condition="[Finished.Contains( _JobState)]" sap:VirtualizedContainerService.HintSize="603,525" sap2010:WorkflowViewState.IdRef="If_1">
+                  <If.Then>
+                    <Assign sap:VirtualizedContainerService.HintSize="242,60" sap2010:WorkflowViewState.IdRef="Assign_6">
+                      <Assign.To>
+                        <OutArgument x:TypeArguments="x:Boolean">[AllDone]</OutArgument>
+                      </Assign.To>
+                      <Assign.Value>
+                        <InArgument x:TypeArguments="x:Boolean">True</InArgument>
+                      </Assign.Value>
+                    </Assign>
+                  </If.Then>
+                  <If.Else>
+                    <Sequence sap:VirtualizedContainerService.HintSize="336,377" sap2010:WorkflowViewState.IdRef="Sequence_6">
+                      <sap:WorkflowViewStateService.ViewState>
+                        <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                          <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                        </scg:Dictionary>
+                      </sap:WorkflowViewStateService.ViewState>
+                      <Assign sap:VirtualizedContainerService.HintSize="314,60" sap2010:WorkflowViewState.IdRef="Assign_7">
+                        <Assign.To>
+                          <OutArgument x:TypeArguments="x:Boolean">[AllDone]</OutArgument>
+                        </Assign.To>
+                        <Assign.Value>
+                          <InArgument x:TypeArguments="x:Boolean">False</InArgument>
+                        </Assign.Value>
+                      </Assign>
+                      <ui:LogMessage DisplayName="Log Message" sap:VirtualizedContainerService.HintSize="314,91" sap2010:WorkflowViewState.IdRef="LogMessage_6" Level="Info" Message="[&quot;아직 종료되지 않은 작업이 있음.. 대기 중&quot;]" />
+                      <ui:Break sap:VirtualizedContainerService.HintSize="314,22" sap2010:WorkflowViewState.IdRef="Break_1" />
+                    </Sequence>
+                  </If.Else>
+                </If>
+              </Sequence>
+            </ActivityAction>
+          </ui:ForEach.Body>
+          <sap:WorkflowViewStateService.ViewState>
+            <scg:Dictionary x:TypeArguments="x:String, x:Object">
+              <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+              <x:Boolean x:Key="IsPinned">False</x:Boolean>
+            </scg:Dictionary>
+          </sap:WorkflowViewStateService.ViewState>
+        </ui:ForEach>
+        <If Condition="[Not AllDone]" sap:VirtualizedContainerService.HintSize="641,208" sap2010:WorkflowViewState.IdRef="If_2">
+          <If.Then>
+            <Delay DisplayName="Delay - 5분 대기 " Duration="00:05:00" sap:VirtualizedContainerService.HintSize="200,22" sap2010:WorkflowViewState.IdRef="Delay_1" />
+          </If.Then>
+        </If>
+      </Sequence>
+    </DoWhile>
+    <o:StartJob sap2010:Annotation.AnnotationText="모든 작업이 종료된 이후에 결과를 취합하는 프로세스 실행 &#xD;&#xA;" DisplayName="StartJob - Merge Process" sap:VirtualizedContainerService.HintSize="689,94" sap2010:WorkflowViewState.IdRef="StartJob_2" in_InputArgs="[&quot;{ &quot;&quot;in_ResultQueue&quot;&quot;: &quot;&quot;&quot;+ResultQueueName+&quot;&quot;&quot; }&quot;]" in_Name="HelloRPA_Distribute" in_NoRobots="1" out_JobIds="[JobIds]" out_Response="[Resp]" out_StatusCode="[StatusCode]">
+      <sap:WorkflowViewStateService.ViewState>
+        <scg:Dictionary x:TypeArguments="x:String, x:Object">
+          <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+        </scg:Dictionary>
+      </sap:WorkflowViewStateService.ViewState>
+    </o:StartJob>
+  </Sequence>
+</Activity>
